@@ -71,7 +71,7 @@ def main(index: int, redownload_json: bool):
 if __name__ == "__main__":
     index = int(sys.argv[1])
     redownload_json = False
-    if sys.argv[2] != None and sys.argv[2] == 'y':
+    if len(sys.argv) == 3 and sys.argv[2] == 'y':
         redownload_json = True
     
     main(index, redownload_json)
