@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-file_path = Path(r"./panel.json")
+file_path = Path(r"./json/panel.json")
 
 def getAllPackages():
     with open(file_path, "r", encoding="utf-8") as f:
@@ -26,7 +26,7 @@ def get_info():
     j = json.dumps(info, indent=4, ensure_ascii=False)
     j = j.encode()
 
-    with open("./packages.json", "wb") as f:
+    with open("./json/packages.json", "wb") as f:
         f.write(j)
 
 if __name__ == "__main__":

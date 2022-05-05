@@ -7,18 +7,16 @@ from pathlib import Path
 import requests
 
 from process_json import file_path, get_info, getAllPackages
+from utils import getHeaders
 
 panel_url = "http://api.bilibili.com/x/emote/setting/panel?business=reply"
 url = "https://api.bilibili.com/x/emote/user/panel/web?business=reply"
-headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36 Edg/101.0.1210.32",
-    "Cookie": ""
-}
 
 def get():
     id = 2
     desc = "tv_小电视"
 
+    headers = getHeaders()
     resp = requests.get(url, headers=headers)
     for item in resp.json()["data"]["packages"][id]["emote"]:
         time.sleep(random.random())
@@ -28,6 +26,7 @@ def get():
             f.write(emote.content)
 
 def write():
+    headers = getHeaders()
     resp = requests.get(url, headers=headers)
     # print(type(resp.json()))
     j = json.dumps(resp.json(), indent=4, ensure_ascii=False)
@@ -53,12 +52,26 @@ def getFromLocal(index: int):
             f.write(emote.content)
 
 def getPanelJson():
+    headers = getHeaders()
     resp = requests.get(panel_url, headers=headers)
     j = json.dumps(resp.json(), indent=4, ensure_ascii=False)
     j = j.encode()
-    with open("panel.json", "wb") as f:
+    with open("./json/panel.json", "wb") as f:
         f.write(j)
 
+def main(index: int, redownload_json: bool):
+    if redownload_json:
+        getPanelJson()
+        get_info()
+        print("重新生成json文件成功")
+
+    getFromLocal(index)
+    print("表情包下载完成")
+
 if __name__ == "__main__":
-    # getPanelJson()
-    getFromLocal(int(sys.argv[1]))
+    index = int(sys.argv[1])
+    redownload_json = False
+    if sys.argv[2] != None and sys.argv[2] == 'y':
+        redownload_json = True
+    
+    main(index, redownload_json)
