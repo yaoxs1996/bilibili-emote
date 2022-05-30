@@ -46,7 +46,11 @@ def getFromLocal(index: int):
 
     for item in target["emote"]:
         time.sleep(random.random())
-        emote_title = item["text"].strip('[').rstrip(']')
+        emote_title: str = item["text"].strip('[').rstrip(']')
+        # 排除文件名中的'?'，防止生成文件时出错
+        if '?' in emote_title:
+            emote_title = emote_title.replace('?', '')
+        
         emote = requests.get(item["url"])
         with open(rf"emote/{emote_name}/{emote_title}.png", "wb") as f:
             f.write(emote.content)
