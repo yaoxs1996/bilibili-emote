@@ -39,20 +39,21 @@ def getFromLocal(index: int):
 
     target = packages[index]
     emote_name = target["text"]
+    id = target["id"]
     print(emote_name)
 
-    if not Path("emote").joinpath(emote_name).exists():
-        Path("emote").joinpath(emote_name).mkdir(parents=True)
+    if not Path("emote").joinpath(str(id) + "_" + emote_name).exists():
+        Path("emote").joinpath(str(id) + "_" + emote_name).mkdir(parents=True)
 
     for item in target["emote"]:
-        time.sleep(random.random())
+        # time.sleep(random.random())
         emote_title: str = item["text"].strip('[').rstrip(']')
         # 排除文件名中的'?'，防止生成文件时出错
         if '?' in emote_title:
             emote_title = emote_title.replace('?', '')
         
         emote = requests.get(item["url"])
-        with open(rf"emote/{emote_name}/{emote_title}.png", "wb") as f:
+        with open(rf"emote/{id}_{emote_name}/{emote_title}.png", "wb") as f:
             f.write(emote.content)
 
 def getPanelJson():
