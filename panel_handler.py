@@ -45,24 +45,27 @@ class PanelHandler:
                 logger.error("不存在的index = {}", index)
                 continue
 
-            self._save_one_emote(index, save_path)
+            self._save_one_emote(index, save_path, False)
 
-    def _save_one_emote(self, index: int, save_path: Path):
+    def _save_one_emote(self, index: int, save_path: Path, skip_exist: bool = False):
         if index == 4:
             logger.info("不支持颜文字下载")
             return
-        
+
         emote_json: Dict[str, Any] = self._id_map[index]
         emote_package_name: str = emote_json["text"]
+        base_path: Path = save_path.joinpath(rf"{index}_{emote_package_name}")
+        if not base_path.exists():
+            base_path.mkdir(parents=True)
+        elif skip_exist:
+            return
+
         logger.info("开始下载{}-{}", index, emote_package_name)
 
         for item in emote_json["emote"]:
             emote_name: str = item["text"].strip('[').rstrip(']')
             emote_name = FileUtils.handle_special_char(emote_name)
             emote = requests.get(item["url"])
-            base_path: Path = save_path.joinpath(rf"{index}_{emote_package_name}")
-            if not base_path.exists():
-                base_path.mkdir(parents=True)
             png_save_path: Path = base_path.joinpath(rf"{emote_name}.png")
             FileUtils.save_png(emote, png_save_path)
 
@@ -77,4 +80,4 @@ class PanelHandler:
             self._gen_id_map()
 
         for index in self._id_map.keys():
-            self._save_one_emote(index, save_path)
+            self._save_one_emote(index, save_path, True)
