@@ -1,9 +1,8 @@
+import json
 from pathlib import Path
 from typing import Any, Dict
 
 from requests import Response
-
-import json
 
 
 class FileUtils:
@@ -26,8 +25,12 @@ class FileUtils:
 
     @staticmethod
     def handle_special_char(name: str) -> str:
+        name = name.rstrip(' ')
         if '?' in name:
             name = name.replace('?', '')
+
+        if '...' in name:
+            name = name.replace('...', '')
 
         return name
 

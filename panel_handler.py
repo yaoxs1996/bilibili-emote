@@ -31,6 +31,7 @@ class PanelHandler:
         for p in packages:
             id_map[p["id"]] = p
 
+        logger.info("当前共有{}个表情包", len(id_map))
         self._id_map = id_map
 
     def download_emote(self, save_path: Path, ids: List[int]):
@@ -53,7 +54,7 @@ class PanelHandler:
             return
 
         emote_json: Dict[str, Any] = self._id_map[index]
-        emote_package_name: str = emote_json["text"]
+        emote_package_name: str = FileUtils.handle_special_char(emote_json["text"])
         base_path: Path = save_path.joinpath(rf"{index}_{emote_package_name}")
         if not base_path.exists():
             base_path.mkdir(parents=True)
