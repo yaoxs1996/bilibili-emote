@@ -48,18 +48,25 @@ class PanelHandler:
             self._save_one_emote(index, save_path)
 
     def _save_one_emote(self, index: int, save_path: Path):
+        if index == 4:
+            logger.info("不支持颜文字下载")
+            return
+        
         emote_json: Dict[str, Any] = self._id_map[index]
         emote_package_name: str = emote_json["text"]
-        logger.info("开始下载{}", emote_package_name)
+        logger.info("开始下载{}-{}", index, emote_package_name)
 
         for item in emote_json["emote"]:
             emote_name: str = item["text"].strip('[').rstrip(']')
             emote_name = FileUtils.handle_special_char(emote_name)
             emote = requests.get(item["url"])
-            png_save_path: Path = save_path.joinpath(rf"{index}_{emote_package_name}", rf"{emote_name}.png")
+            base_path: Path = save_path.joinpath(rf"{index}_{emote_package_name}")
+            if not base_path.exists():
+                base_path.mkdir(parents=True)
+            png_save_path: Path = base_path.joinpath(rf"{emote_name}.png")
             FileUtils.save_png(emote, png_save_path)
 
-        logger.info("完成下载{}", emote_package_name)
+        logger.info("完成下载{}-{}", index, emote_package_name)
 
     def download_all_emote(self, save_path: Path):
 
