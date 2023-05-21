@@ -1,82 +1,44 @@
-import json
-import random
-import sys
-import time
+import argparse
 from pathlib import Path
+from typing import List
 
-import requests
+import consts
+from panel_handler import PanelHandler
 
-from process_json import file_path, get_info, getAllPackages
-from utils import getHeaders
 
-panel_url = "http://api.bilibili.com/x/emote/setting/panel?business=reply"
-url = "https://api.bilibili.com/x/emote/user/panel/web?business=reply"
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--index", type=str, default="1")
+    parser.add_argument("--path", type=str, default="./emote")
+    parser.add_argument("--all", type=bool, default=False)
+    parser.add_argument("--refresh", type=str, default=False)
 
-def get():
-    id = 2
-    desc = "tv_小电视"
+    return parser.parse_args()
 
-    headers = getHeaders()
-    resp = requests.get(url, headers=headers)
-    for item in resp.json()["data"]["packages"][id]["emote"]:
-        time.sleep(random.random())
-        emote_title = item["text"].strip('[').rstrip(']')
-        emote = requests.get(item["url"])
-        with open(rf"emote/{desc}/{emote_title}.png", "wb") as f:
-            f.write(emote.content)
 
-def write():
-    headers = getHeaders()
-    resp = requests.get(url, headers=headers)
-    # print(type(resp.json()))
-    j = json.dumps(resp.json(), indent=4, ensure_ascii=False)
-    j = j.encode()
-    with open("test.json", "wb") as f:
-        f.write(j)
+def convert_str_to_list(original: str) -> List[int]:
+    result: List[int] = []
+    str_list: List[str] = original.replace(' ', '').split(',')
+    for s in str_list:
+        result.append(int(s))
 
-def getFromLocal(index: int):
-    packages = getAllPackages()
+    return result
 
-    target = packages[index]
-    emote_name = target["text"]
-    id = target["id"]
-    print(emote_name)
-
-    if not Path("emote").joinpath(str(id) + "_" + emote_name).exists():
-        Path("emote").joinpath(str(id) + "_" + emote_name).mkdir(parents=True)
-
-    for item in target["emote"]:
-        # time.sleep(random.random())
-        emote_title: str = item["text"].strip('[').rstrip(']')
-        # 排除文件名中的'?'，防止生成文件时出错
-        if '?' in emote_title:
-            emote_title = emote_title.replace('?', '')
-        
-        emote = requests.get(item["url"])
-        with open(rf"emote/{id}_{emote_name}/{emote_title}.png", "wb") as f:
-            f.write(emote.content)
-
-def getPanelJson():
-    headers = getHeaders()
-    resp = requests.get(panel_url, headers=headers)
-    j = json.dumps(resp.json(), indent=4, ensure_ascii=False)
-    j = j.encode()
-    with open("./json/panel.json", "wb") as f:
-        f.write(j)
-
-def main(index: int, redownload_json: bool):
-    if redownload_json:
-        getPanelJson()
-        get_info()
-        print("重新生成json文件成功")
-
-    getFromLocal(index)
-    print("表情包下载完成")
 
 if __name__ == "__main__":
-    index = int(sys.argv[1])
-    redownload_json = False
-    if len(sys.argv) == 3 and sys.argv[2] == 'y':
-        redownload_json = True
-    
-    main(index, redownload_json)
+    args = get_args()
+    header_path: Path = consts.RESOURCE_PATH.joinpath(consts.HEADER_FILE_NAME)
+    panel_path: Path = consts.RESOURCE_PATH.joinpath(consts.PANEL_FILE_NAME)
+
+    handler = PanelHandler(header_path=header_path, panel_file_path=panel_path)
+    if args.refresh:
+        handler.gen_panel_file()
+
+    save_path: Path = Path(args.path)
+
+    if args.all:
+        handler.download_all_emote(save_path)
+    else:
+        ids_str: str = args.index
+        ids: List[int] = convert_str_to_list(ids_str)
+        handler.download_emote(save_path, ids)
